@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vector Map — Castles in Utrecht</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<script>
+  function openLightbox(src){
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    const lb = document.getElementById('lightbox');
+    lb.classList.remove('show');
+    document.getElementById('lightbox-img').src = '';
+    document.body.style.overflow = '';
+  }
+  // close on Esc
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+</script>
+
+<body>
+    <header class="header">
+  <div class="container nav">
+    <div class="brand">
+      <a href="index.html" class="brand-link" aria-label="Home">
+        <img src="shiga.jpg" alt="Shiga lake" class="brand-img">
+        <h1 class="brand-title">Sina Schlunze</h1>
+      </a>
+    </div>
+
+    <nav class="menu" role="navigation" aria-label="Main navigation">
+      <button id="mobile-toggle" class="mobile-toggle" aria-expanded="false" aria-controls="main-menu">☰</button>
+
+      <ul id="main-menu" class="menu-list">
+        <li><a href="index.html">Home</a></li>
+        <li class="has-sub"><a href="concepts.html">Concepts ▾</a>
+          <ul class="sub-menu">
+            <li><a href="concepts.html#classification">Classification</a></li>
+            <li><a href="concepts.html#mca">MCA</a></li>
+          </ul>
+        </li>
+        <li><a href="choropleth.html">Choropleth</a></li>
+        <li><a href="vector.html">Vector</a></li>
+        <li><a href="dtm-dsm.html">DTM/DSM</a></li>
+        <li><a href="vegetation.html">Vegetation</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Mobile menu toggle (paste at end of body or in a shared JS file)
+  (function(){
+    const btn = document.getElementById('mobile-toggle');
+    const menu = document.getElementById('main-menu');
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      menu.classList.toggle('open');
+    });
+  })();
+</script>
+
+  <main class="container" style="padding-top:28px">
+    <h2>Vector map</h2>
+
+    <!-- thumbnail -->
+<img src="bike-castle.jpg" alt="Castles and reachability" class="figure-img" loading="lazy"
+     onclick="openLightbox('bike-castle.jpg')" style="cursor:pointer" />
+
+
+
+
+       
+      <p>Historical castles in Utrecht and their reachability (click map to zoom)</p>
+
+      <p>The process of making this map started by importing data from Open Street Map, a free and open map created by volunteers around the world. For this project, I chose to analyze the locations of castles in Utrecht and their reachability with bikes. The downloaded data was cleaned so that only the necessary information remained and transformed into point data. Next, I introduced an algorithm called Open Route Service. With this tool, I was able to simulate how much time it will take when biking from the castle. As a result, we can observe the castles surrounding the city of Utrecht. They are distanced from each other’s in about 5 to 15 minutes biking time. This map can be used for tourism purposes. National and international visitors can visit castles by biking; in this way, they can both explore Dutch heritage and embody Dutch culture at the same time. This map can be used to decide on a trip itinerary because it shows which castles are nearby, not just by direct distance but also by commuting time.</p>
+
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <img src="Castle-den-haag.jpg" alt="Castle den haag" style="width:120px;height:120px;object-fit:cover;border-radius:8px">
+        <img src="Biking-illustration.jpg" alt="Biking illustration" style="width:120px;height:120px;object-fit:cover;border-radius:8px">
+      </div>
+    </div>
+  </main>
+<!-- lightbox element (place once near end of body) -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="expanded image" />
+</div>
+
+  <footer class="footer">© 2026 Sina S.</footer>
+</body>
+</html>

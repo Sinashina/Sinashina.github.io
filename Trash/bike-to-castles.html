@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Isochrone Explorer (OSM / OpenRouteService)</title>
+
+  <!-- Leaflet CSS/JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Turf (optional, used for bbox and geometry ops) -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f3fbf6;
+      --panel:#ffffff;
+      --accent:#2f9e5a;
+      --muted:#4b5563;
+      --radius:10px;
+      --shadow:0 10px 30px rgba(15,23,20,0.06);
+      --max-width:1200px;
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:#083a24}
+    #map { position:fixed; inset:0; z-index:0; }
+    .panel {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      z-index: 1000;
+      width: 320px;
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      font-size: 14px;
+    }
+    .desc {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 1000;
+      width: 360px;
+      max-width: calc(100% - 32px);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      font-size: 14px;
+      color: #123a28;
+    }
+    .legend {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 1000;
+      background: var(--panel);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    label{display:block;margin-top:8px;font-weight:600;color:var(--muted)}
+    input[type="text"], select, textarea { width:100%; padding:8px; margin-top:6px; border-radius:8px; border:1px solid #e6f0ea; font-size:13px }
+    textarea { min-height:80px; resize:vertical }
+    .btn { display:inline-block; margin-top:10px; padding:8px 12px; border-radius:8px; background:var(--accent); color:white; border:0; cursor:pointer; font-weight:700 }
+    .btn-ghost { background:transparent; border:1px solid var(--accent); color:var(--accent) }
+    .small { font-size:12px; color:var(--muted); margin-top:8px }
+    .footer-note { position:fixed; left:50%; transform:translateX(-50%); bottom:8px; font-size:12px; color:var(--muted); z-index:999 }
+    @media (max-width:720px){
+      .panel{width:92%; left:4%}
+      .desc{left:4%; width:92%}
+      .legend{display:none}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAP -->
+  <div id="map" aria-label="Map"></div>
+
+  <!-- CONTROLS PANEL -->
+  <div class="panel" role="region" aria-label="Isochrone controls">
+    <h3 style="margin:0 0 8px 0">Isochrone Explorer (OSM)</h3>
+
+    <!-- Profile selection -->
+    <label for="profile">Routing profile</label>
+    <select id="profile" aria-label="Routing profile">
+      <option value="driving-car">Driving (car)</option>
+      <option value="cycling-regular">Cycling</option>
+      <option value="foot-walking">Walking</option>
+    </select>
+
+    <!-- Travel times -->
+    <label for="minutes">Travel times (minutes, comma separated)</label>
+    <input id="minutes" type="text" value="10,20,30" aria-label="Travel times in minutes" />
+
+    <!-- Origin input -->
+    <label for="origin">Origin (lng,lat) or click map</label>
+    <input id="origin" type="text" placeholder="e.g. 4.8994,52.3791" aria-label="Origin coordinates" />
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="setOriginBtn" class="btn" type="button">Set Origin</button>
+      <button id="generateBtn" class="btn" type="button" style="background:#0b6b3f">Generate</button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="downloadBtn" class="btn-ghost" type="button">Download GeoJSON</button>
+      <button id="clearBtn" class="btn-ghost" type="button">Clear</button>
+    </div>
+
+    <label for="notes">Optional notes (editable)</label>
+    <textarea id="notes">Tip: Click the map to set an origin. Replace the ORS API key in the script with your key.</textarea>
+
+    <div class="small">Where to add API key: see the script section below. ORS uses seconds for ranges (we convert minutes automatically).</div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend" aria-hidden="true">
+    <div style="font-weight:700;margin-bottom:6px">Legend</div>
+    <div><span style="display:inline-block;width:18px;height:12px;background:#d1f7e0;margin-right:8px;border-radius:3px"></span> Short</div>
+    <div><span style="display:inline-block;width:18px;height:12px;background:#8fe0b8;margin-right:8px;border-radius:3px"></span> Medium</div>
+    <div><span style="display:inline-block;width:18px;height:12px;background:#2f9e5a;margin-right:8px;border-radius:3px"></span> Long</div>
+  </div>
+
+  <!-- DESCRIPTION -->
+  <div class="desc" role="region" aria-label="Description">
+    <h4 style="margin:0 0 6px 0">What this is</h4>
+    <p id="descText" style="margin:0 0 8px 0">
+      This tool computes travel‑time isochrones (areas reachable within X minutes) using OpenRouteService (ORS) on OpenStreetMap data.
+      Choose a profile, set travel times, click the map to set an origin (or paste coordinates), then press Generate.
+    </p>
+    <div style="font-size:13px;color:var(--muted)">
+      <strong>Where to add your ORS key:</strong> in the script below replace <code>YOUR_ORS_API_KEY_HERE</code> with your key.
+      <br><strong>Optional:</strong> edit the notes box to add project details or data sources.
+    </div>
+  </div>
+
+  <div class="footer-note">Isochrone Explorer • OpenRouteService • OSM</div>
+
+  <!-- SCRIPT: Leaflet + ORS integration -->
+  <script>
+    /*************************************************************************
+     *  IMPORTANT: Replace the string below with your OpenRouteService API key.
+     *  Get a key at https://openrouteservice.org/dev/#/signup
+     *
+     *  Where to add key: change the value of ORS_API_KEY variable.
+     *************************************************************************/
+    const ORS_API_KEY = 'YOUR_ORS_API_KEY_HERE';
+
+    // Map defaults: change center/zoom to your study area
+    const DEFAULT_CENTER = [52.1, 4.9]; // [lat, lng] (Leaflet uses lat,lng)
+    const DEFAULT_ZOOM = 9;
+    const MIN_ZOOM = 4;
+
+    // Create Leaflet map
+    const map = L.map('map', { minZoom: MIN_ZOOM }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+
+    // Add OSM tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Layer groups
+    const isoLayer = L.geoJSON(null, {
+      style: feature => ({ color: feature.properties && feature.properties.color ? feature.properties.color : '#2f9e5a', weight: 2, fillOpacity: 0.35 }),
+      onEachFeature: (feature, layer) => {
+        if (feature.properties && feature.properties.value) {
+          layer.bindPopup('Reachable in ' + feature.properties.value + ' seconds (' + Math.round(feature.properties.value/60) + ' min)');
+        }
+      }
+    }).addTo(map);
+
+    const originLayer = CastlePoints.geoJSON(null, {
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 7, fillColor: '#0b6b3f', color: '#fff', weight: 2, fillOpacity: 1 })
+    }).addTo(map);
+
+    // UI elements
+    const profileEl = document.getElementById('profile');
+    const minutesEl = document.getElementById('minutes');
+    const originEl = document.getElementById('origin');
+    const setOriginBtn = document.getElementById('setOriginBtn');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const notesEl = document.getElementById('notes');
+    const descText = document.getElementById('descText');
+
+    let origin = null;           // [lng, lat] for ORS
+    let lastIsoGeoJSON = null;   // store last generated GeoJSON for download
+
+    // Click map to set origin
+    map.on('click', (e) => {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      setOrigin([lng, lat]);
+    });
+
+    // Set origin from input
+    setOriginBtn.addEventListener('click', () => {
+      const v = originEl.value.trim();
+      if (!v) { alert('Enter coordinates or click the map'); return; }
+      const parts = v.split(',').map(s => parseFloat(s.trim()));
+      if (parts.length !== 2 || parts.some(isNaN)) { alert('Enter coordinates as lng,lat'); return; }
+}
+
+      </origin>
+
+    // Set origin from input
+    setOriginBtn.addEventListener('click', () => {
+      const v = originEl.value.trim();
+      if (!v) { alert('Enter coordinates or click the map'); return; }
+      const parts = v.split(',').map(s => parseFloat(s.trim()));
+      if (parts.length !== 2 || parts.some(isNaN)) { alert('Enter coordinates as lng,lat'); return; }
+      setOrigin([parts[0], parts[1]]);
+      map.flyTo([parts[1], parts[0]], 12);
+    });
+
+    function setOrigin(lnglat) {
+      origin = lnglat; // [lng, lat]
+      originEl.value = origin[0].toFixed(6) + ',' + origin[1].toFixed(6);
+      // update origin layer
+      originLayer.clearLayers();
+      originLayer.addData({ type: 'Feature', geometry: { type: 'Point', coordinates: origin }, properties: {} });
+    }
+
+    // Clear map
+    clearBtn.addEventListener('click', () => {
+      isoLayer.clearLayers();
+      originLayer.clearLayers();
+      origin = null;
+      originEl.value = '';
+      lastIsoGeoJSON = null;
+    });
+
+    // Download last GeoJSON
+    downloadBtn.addEventListener('click', () => {
+      if (!lastIsoGeoJSON) { alert('No isochrones to download. Generate first.'); return; }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lastIsoGeoJSON));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "isochrones.geojson");
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    });
+
+    // Generate isochrones (call ORS)
+    generateBtn.addEventListener('click', async () => {
+      if (!origin) { alert('Set an origin first (click map or enter coordinates)'); return; }
+
+      // parse minutes input
+      const minutesRaw = minutesEl.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (minutesRaw.length === 0) { alert('Enter at least one travel time'); return; }
+      const minutes = Array.from(new Set(minutesRaw.map(m => parseInt(m,10)).filter(n => !isNaN(n) && n>0))).sort((a,b)=>a-b);
+      if (minutes.length === 0) { alert('Enter valid positive integers for minutes'); return; }
+
+      // ORS expects seconds
+      const ranges = minutes.map(m => m * 60);
+
+      // Build ORS request
+      const profile = profileEl.value; // e.g., driving-car, cycling-regular, foot-walking
+      const url = `https://api.openrouteservice.org/v2/isochrones/${encodeURIComponent(profile)}`;
+
+      // Request body per ORS docs
+      const body = {
+        locations: [[origin[0], origin[1]]], // [lng, lat]
+        range: ranges,
+        range_type: 'time',     // time in seconds
+        units: 'm'              // meters for distance if needed; not used for time
+        // optional: add attributes, smoothing, interval, etc.
+      };
+
+      try {
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': ORS_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error('ORS request failed: ' + res.status + ' ' + text);
+        }
+
+        const geo = await res.json();
+
+        // ORS returns features with property 'value' (seconds). Assign colors by sorted value.
+        const features = geo.features.slice().sort((a,b) => (a.properties.value || 0) - (b.properties.value || 0));
+        const colorRamp = ['#d1f7e0','#8fe0b8','#2f9e5a','#0b6b3f','#074f2b'];
+        features.forEach((f, i) => {
+          f.properties.color = colorRamp[i % colorRamp.length];
+        });
+
+        // Update map: clear and add new features
+        isoLayer.clearLayers();
+        isoLayer.addData({ type: 'FeatureCollection', features: features });
+
+        // store for download
+        lastIsoGeoJSON = { type: 'FeatureCollection', features: features };
+
+        // Fit map to isochrone bounds (use turf if available)
+        try {
+          const bbox = turf.bbox(lastIsoGeoJSON);
+          if (bbox && bbox.every(n => isFinite(n))) {
+            map.fitBounds([[bbox[1], bbox[0]], [bbox[3], bbox[2]]], { padding: [40,40], maxZoom: 13 });
+          }
+        } catch (e) {
+          // fallback: do nothing
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert('Error generating isochrones: ' + err.message);
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate';
+      }
+    });
+
+    // Keep description dynamic
+    function updateDescription() {
+      const profile = profileEl.value;
+      const minutes = minutesEl.value;
+      descText.textContent = `This tool estimates travel-time reach for ${profile.replace('-', ' ')} trips. Contours requested: ${minutes}. Click the map or enter coordinates to set the origin, then press Generate.`;
+    }
+    profileEl.addEventListener('change', updateDescription);
+    minutesEl.addEventListener('input', updateDescription);
+    updateDescription();
+
+    // Prevent zooming out too far
+    map.on('zoomend', () => {
+      if (map.getZoom() < MIN_ZOOM) map.setZoom(MIN_ZOOM);
+    });
+
+    // Helpful console note if API key not set
+    if (!ORS_API_KEY || ORS_API_KEY === 'YOUR_ORS_API_KEY_HERE') {
+      console.warn('OpenRouteService API key not set. Replace ORS_API_KEY variable in the script with your key.');
+    }
+
+    /*************************************************************************
+     * Optional places to add text or customization:
+     *
+     * - Change default center/zoom: edit DEFAULT_CENTER and DEFAULT_ZOOM above.
+     * - Change color ramp: edit colorRamp array inside the generate handler.
+     * - Add smoothing or interval options: extend the "body" object sent to ORS
+     *   (see ORS docs for "smoothing", "interval", "attributes").
+     * - Add server proxy: if you don't want to expose the ORS key in client,
+     *   create a small server endpoint that forwards requests to ORS using a
+     *   secret key and call that endpoint instead.
+     *
+     * Where to add credits/data sources:
+     * - Edit the notes textarea (id="notes") or the description panel (descText).
+     *
+     *************************************************************************/
+  </script>
+</body>
+</html>

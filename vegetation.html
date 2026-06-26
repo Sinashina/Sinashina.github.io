@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vegetation Map — Harz National Park</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<script>
+  function openLightbox(src){
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    const lb = document.getElementById('lightbox');
+    lb.classList.remove('show');
+    document.getElementById('lightbox-img').src = '';
+    document.body.style.overflow = '';
+  }
+  // close on Esc
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+</script>
+
+<body>
+    <header class="header">
+  <div class="container nav">
+    <div class="brand">
+      <a href="index.html" class="brand-link" aria-label="Home">
+        <img src="shiga.jpg" alt="Shiga lake" class="brand-img">
+        <h1 class="brand-title">Sina Schlunze</h1>
+      </a>
+    </div>
+
+    <nav class="menu" role="navigation" aria-label="Main navigation">
+      <button id="mobile-toggle" class="mobile-toggle" aria-expanded="false" aria-controls="main-menu">☰</button>
+
+      <ul id="main-menu" class="menu-list">
+        <li><a href="index.html">Home</a></li>
+        <li class="has-sub"><a href="concepts.html">Concepts ▾</a>
+          <ul class="sub-menu">
+            <li><a href="concepts.html#classification">Classification</a></li>
+            <li><a href="concepts.html#mca">MCA</a></li>
+          </ul>
+        </li>
+        <li><a href="choropleth.html">Choropleth</a></li>
+        <li><a href="vector.html">Vector</a></li>
+        <li><a href="dtm-dsm.html">DTM/DSM</a></li>
+        <li><a href="vegetation.html">Vegetation</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Mobile menu toggle (paste at end of body or in a shared JS file)
+  (function(){
+    const btn = document.getElementById('mobile-toggle');
+    const menu = document.getElementById('main-menu');
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      menu.classList.toggle('open');
+    });
+  })();
+</script>
+
+
+  <main class="container" style="padding-top:28px">
+    <h2>Vegetation Map</h2>
+
+    <div class="map-figure">
+      
+<figure>
+  <img src="np-harz.jpg" alt="Harz" class="figure-img" loading="lazy" />
+</figure>
+
+      <p>For this assignment, I chose to build and compare the map of Harz. Harz is a region in the middle of Germany. A part of it is reserved as the Harz National Park. The park is part of the Natura 2000 network of the European Union. Rare animals like the white-throated dipper, the black stork, peregrine falcon, the European wildcat, and especially the Eurasian lynx live in this forest area. However, the Park has been struggling under climate change. Especially through the outbreak of the bark beetles in 2018.</p>
+
+      <p>To analyze the vegetation indices, I used ortmosaic, satellite images that are collected and merged into a single map. I downloaded the Multispectral Satellite Imagery data, captured and classified different wavelength lights, from Google Earth Engine. This technique is commonly used for monitoring vegetation health and observing land cover and land use. Therefore, this technique is significant for forest conservation and land use planning. One example of such satellites is Sentinel 2. It is a land‑monitoring constellation of polar‑orbiting satellites operated by the European Space Agency (ESA) under the Copernicus Programme.</p>
+
+      <p>To see what is happening on the Earth's surface, it is important to use pictures with no clouds. To achieve this, pictures from many different dates are collected. In this Picture, pictures from July to December of 2017 and 2025, respectively, are patched together. Even with this decent time length, it was hard to make a picture with no clouds, even harder in humid or coastal regions.</p>
+
+     
+ <!-- thumbnail -->
+<img src="Harz True Color RGB 2017.png" alt="Harz True Color RGB 2017" class="figure-img" loading="lazy"
+     onclick="openLightbox('Harz True Color RGB 2017.png')" style="cursor:pointer" />
+<!-- thumbnail -->
+<img src="Harz True Color RGB 2025.png" alt="Harz True Color RGB 2025" class="figure-img" loading="lazy"
+     onclick="openLightbox('Harz True Color RGB 2025.png')" style="cursor:pointer" />
+
+      <p>Vegetation index is calculated from two or more spectral bands, and it can be used to estimate factors of the designated area, such as the biomass, plant health, or productivity. The most used Vegitaion index is NDVI, the Normalized Difference Vegetation Index, and It compares how much near‑infrared (NIR) light, such as blue light, vegetation reflects to how much red light it absorbs.</p>
+
+      <p>Function: NDVI= (NIR-Red)/(NIR+Red)</p>
+
+      <p>In this way, we can point out the healthy vegetation with high NDVI, because it reflects more NDVI and less red light.</p>
+
+    <!-- thumbnail -->
+<img src="Harz NDVI 2017.png" alt="Harz NDVI 2017" class="figure-img" loading="lazy"
+     onclick="openLightbox('Harz NDVI 2017.png')" style="cursor:pointer" />
+<!-- thumbnail -->
+<img src="Harz NDVI 2025.png" alt="Harz NDVI 2025" class="figure-img" loading="lazy"
+     onclick="openLightbox('Harz NDVI 2025.png')" style="cursor:pointer" />
+
+      <p>Time is one of the most important factors for orthomosaic since vegetation and land use change all the time, even within a year.</p>
+
+      <p>Lastly, I calculated the difference in NDVI between Harz in 2017 and 2025.</p>
+
+      <p>Function: NDVI2017-NDVI2025</p>
+<img src="Harz- Change over time.png" alt="Harz- Change over time" class="figure-img" loading="lazy"
+     onclick="openLightbox('Harz- Change over time.png')" style="cursor:pointer" />
+
+  
+      <p>If the value is positive, the NDVI has worsened over the 7 years, and if negative, it has improved. Since the forest part is blue, meaning a negative value, it means the NDVI has improved from 2017 to 2025. However, the National Park Harz is still struggling from the bug catasthropy while the outbreak was after 2017. One possible explanation why the NDVI improved while the forest health has worsened is that since the tall bark trees have died out, trees and grass have come out, resulting in a greener reflection on the satellite image. Therefore is always important to have a look at multiple data types and consider the weaknesses and strengths of the method when leading research.</p>
+
+      <figure>
+  <img src="np-harz2.jpg" alt="HarzTrees" class="figure-img" loading="lazy" />
+  <figcaption class="small">National Park Harz in 2022</figcaption>
+</figure>
+    </div>
+  </main>
+<!-- lightbox element (place once near end of body) -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="expanded image" />
+</div>
+  <footer class="footer">© 2026 Sina S.</footer>
+</body>
+</html>

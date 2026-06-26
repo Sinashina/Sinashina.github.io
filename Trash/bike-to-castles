@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Isochrone Explorer — Mapbox Isochrone API</title>
+
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.18.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.18.0/mapbox-gl.js"></script>
+
+  <!-- Optional Turf for bbox fitting -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f3fbf6;
+      --panel:#ffffff;
+      --accent:#2f9e5a;
+      --muted:#4b5563;
+      --radius:10px;
+      --shadow:0 10px 30px rgba(15,23,20,0.06);
+      --max-width:1200px;
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:var(--bg);color:#083a24}
+    #map{position:fixed;inset:0;z-index:0}
+    .ui {
+      position: absolute;
+      left:16px;
+      top:16px;
+      z-index:10;
+      width:320px;
+      background:var(--panel);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:12px;
+      font-size:14px;
+    }
+    .ui h3{margin:0 0 8px 0;font-size:16px}
+    .ui label{display:block;margin-top:8px;font-weight:600;color:var(--muted)}
+    .ui input[type="text"], .ui select, .ui textarea {
+      width:100%;padding:8px;border-radius:8px;border:1px solid #e6f0ea;margin-top:6px;font-size:13px;
+    }
+    .ui textarea{min-height:80px;resize:vertical}
+    .btn {
+      display:inline-block;margin-top:10px;padding:8px 12px;border-radius:8px;background:var(--accent);color:white;border:0;cursor:pointer;font-weight:700;
+    }
+    .small {font-size:12px;color:var(--muted);margin-top:8px}
+    .legend {
+      position:absolute;right:16px;top:16px;z-index:10;background:var(--panel);padding:10px;border-radius:10px;box-shadow:var(--shadow);
+      font-size:13px;color:var(--muted);
+    }
+    .desc-section {
+      position: absolute;
+      left:16px;
+      bottom:16px;
+      z-index:10;
+      width:360px;
+      max-width:calc(100% - 32px);
+      background:var(--panel);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:12px;
+      font-size:14px;
+      color:#123a28;
+    }
+    .desc-section h4{margin:0 0 6px 0}
+    .footer-note{position:fixed;left:50%;transform:translateX(-50%);bottom:8px;font-size:12px;color:var(--muted);z-index:9}
+    @media (max-width:720px){
+      .ui{width:92%;left:4%;top:8px}
+      .desc-section{left:4%;width:92%}
+      .legend{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<div id="map" aria-label="Map"></div>
+
+<!-- Controls panel -->
+<div class="ui" role="region" aria-label="Isochrone controls">
+  <h3>Isochrone Explorer</h3>
+
+  <label for="profile">Routing profile</label>
+  <select id="profile" aria-label="Routing profile">
+    <option value="driving">Driving</option>
+    <option value="cycling">Cycling</option>
+    <option value="walking">Walking</option>
+  </select>
+
+  <label for="minutes">Travel times minutes

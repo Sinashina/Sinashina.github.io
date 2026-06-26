@@ -1,0 +1,250 @@
+<div id="map"></div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bike Isochrone Viewer — Auto Travel Times</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+  <style>
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial}
+    #map{position:fixed;inset:0}
+    .panel{position:absolute;left:12px;top:12px;z-index:1000;background:#fff;padding:10px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.08);width:340px}
+    .desc{position:absolute;left:12px;bottom:12px;z-index:1000;background:#fff;padding:10px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.08);width:360px}
+    label{display:block;margin-top:8px;font-weight:600}
+    select,input,textarea{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #e6e6e6}
+    .btn{margin-top:8px;padding:8px 10px;border-radius:6px;background:#2f9e5a;color:#fff;border:0;cursor:pointer}
+    .list { margin-top:8px; max-height:220px; overflow:auto; border:1px solid #eee; padding:6px; border-radius:6px; background:#fafafa }
+    .list-item { padding:6px 8px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center }
+    .list-item:last-child{border-bottom:none}
+    .time-badge { background:#0b6b3f; color:#fff; padding:4px 8px; border-radius:12px; font-size:12px }
+    .no-time { color:#b33; font-weight:700 }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="panel" role="region" aria-label="Controls">
+  <h3 style="margin:0">Bike Isochrone Viewer — Auto Times</h3>
+
+  <label for="dataMode">Data source</label>
+  <select id="dataMode">
+    <option value="embedded">Use embedded GeoJSON (default)</option>
+    <option value="fetch">Fetch iso.json / points.json from server</option>
+  </select>
+
+  <label for="CastlePoints.geojson">(Optional) Replace embedded isochrones</label>
+  <input id="isoFile" type="file" accept=".geojson,application/geo+json,application/json" />
+
+  <label for="pointsFile">(Optional) Replace embedded points</label>
+  <input id="pointsFile" type="file" accept=".geojson,application/geo+json,application/json" />
+
+  <label for="notes">Page notes</label>
+  <textarea id="notes">Edit this text to describe your project or data sources.</textarea>
+
+  <div style="margin-top:10px;font-weight:700">Destinations (auto-updated)</div>
+  <div id="pointsList" class="list"><div style="padding:8px;color:#666">No points loaded yet.</div></div>
+</div>
+
+<div class="desc" role="region" aria-label="Description">
+  <h4 style="margin:0 0 6px 0">Description</h4>
+  <p id="descText" style="margin:0">
+    This viewer automatically computes bike travel times from the embedded isochrone GeoJSON to each destination point.
+    Replace the embedded GeoJSON variables in the script or upload files to change the data.
+  </p>
+</div>
+
+<script>
+/* ===========================
+   EMBEDDED DATA
+   Replace DEFAULT_ISO and DEFAULT_POINTS with your GeoJSON content
+   (or use the Fetch mode and host iso.json / points.json next to index.html)
+   =========================== */
+
+const DEFAULT_ISO = {
+  "type":"FeatureCollection",
+  "features":[
+    /* Example polygons (replace with your real isochrones) */
+    {
+      "type":"Feature",
+      "properties": { "value": 600 }, /* seconds */
+      "geometry": { "type":"Polygon", "coordinates":[[[4.88,52.37],[4.90,52.37],[4.90,52.39],[4.88,52.39],[4.88,52.37]]] }
+    },
+    {
+      "type":"
+
+
+<div class="desc" role="region" aria-label="Description">
+  <h4 style="margin:0 0 6px 0">Description</h4>
+  <p id="descText" style="margin:0">The process of making this map started by importing data from Open Street Map, a free and open map created by volunteers around the world. For this project, I chose to analyze the locations of castles in Utrecht and their reachability with bikes. The downloaded data was cleaned so that only the necessary information remained and transformed into point data. Next, I introduced an algorithm called Open Route Service. With this tool, I was able to simulate how much time it will take when biking from the castle. As a result, we can observe the castles surrounding the city of Utrecht. They are distanced from each other’s in about 5 to 15 minutes biking time. This map can be used for tourism purposes. National and international visitors can visit castles by biking; in this way, they can both explore Dutch heritage and embody Dutch culture at the same time. This map can be used to decide on a trip itinerary because it shows which castles are nearby, not just by direct distance but also by commuting time. </p>
+</div>
+
+<script>
+/* ===========================
+   Replace these two variables with your GeoJSON content.
+   - DEFAULT_ISO: FeatureCollection of Polygon/MultiPolygon isochrones.
+     Each feature should include a numeric property such as 'value' (seconds) or 'contour' (minutes).
+   - DEFAULT_POINTS: FeatureCollection of Point features. Use properties.name for labels.
+   =========================== */
+
+const DEFAULT_ISO = {
+  "type": "FeatureCollection",
+  "features": ["CastleBike5.10.15.geojson"
+    /* add more features */
+  ]
+};
+
+const DEFAULT_POINTS = {
+  "type":"FeatureCollection",
+  "features":["CastleBikePoints.geojson"
+    /* Example point (replace with your points) */
+   
+    /* add more points */
+  ]
+};
+
+/* ===========================
+   Map setup (no changes needed)
+   =========================== */
+const map = L.map('map').setView([52.1, 4.9], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(map);
+
+const isoLayer = L.geoJSON(null, {
+  style: f => ({ color: f.properties.color || '#2f9e5a', weight:2, fillOpacity:0.35 }),
+  onEachFeature: (f, layer) => {
+    const t = getTimeFromFeature(f);
+    layer.bindPopup(t ? `Reachable in ${t.display}` : 'Isochrone');
+  }
+}).addTo(map);
+
+const pointsLayer = L.geoJSON(null, {
+  pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius:6, fillColor:'#0b6b3f', color:'#fff', weight:1, fillOpacity:1 }),
+  onEachFeature: (f, layer) => {
+    const name = (f.properties && (f.properties.name || f.properties.title)) || 'Point';
+    layer.bindPopup(`<strong>${name}</strong>`);
+  }
+}).addTo(map);
+
+/* UI elements */
+const dataMode = document.getElementById('dataMode');
+const pointSelect = document.getElementById('pointSelect');
+const showBtn = document.getElementById('showBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const notesEl = document.getElementById('notes');
+
+let isoGeo = null;
+let pointsGeo = null;
+
+/* Utility: read time property from isochrone feature */
+function getTimeFromFeature(feature){
+  if(!feature || !feature.properties) return null;
+  const p = feature.properties;
+  if(p.value !== undefined && p.value !== null){ const secs = Number(p.value); if(!isNaN(secs)) return { raw: secs+' s', display: Math.round(secs/60)+' min' }; }
+  if(p.contour !== undefined && p.contour !== null){ const mins = Number(p.contour); if(!isNaN(mins)) return { raw: mins+' min', display: mins+' min' }; }
+  if(p.minutes !== undefined && p.minutes !== null){ const mins = Number(p.minutes); if(!isNaN(mins)) return { raw: mins+' min', display: mins+' min' }; }
+  return null;
+}
+
+/* Colorize features short->long */
+function colorizeIso(fc){
+  if(!fc || !fc.features) return fc;
+  const feats = fc.features.slice().sort((a,b)=>{
+    const ta = Number((a.properties && (a.properties.value || a.properties.contour || a.properties.minutes))||0);
+    const tb = Number((b.properties && (b.properties.value || b.properties.contour || b.properties.minutes))||0);
+    return ta - tb;
+  });
+  const ramp = ['#d1f7e0','#8fe0b8','#2f9e5a','#0b6b3f','#074f2b'];
+  feats.forEach((f,i)=>{ f.properties = f.properties || {}; f.properties.color = ramp[i % ramp.length]; });
+  return { type:'FeatureCollection', features:feats };
+}
+
+/* Load embedded data */
+function loadEmbedded(){
+  isoGeo = colorizeIso(DEFAULT_ISO);
+  pointsGeo = DEFAULT_POINTS;
+  isoLayer.clearLayers(); isoLayer.addData(isoGeo);
+  pointsLayer.clearLayers(); pointsLayer.addData(pointsGeo);
+  populatePointSelect();
+  fitToData();
+}
+
+/* Fetch files from server (expects iso.json and points.json in same folder) */
+async function fetchFiles(){
+  try{
+    const isoRes = await fetch('iso.json'); if(!isoRes.ok) throw new Error('iso.json not found');
+    const ptsRes = await fetch('points.json'); if(!ptsRes.ok) throw new Error('points.json not found');
+    const iso = await isoRes.json(); const pts = await ptsRes.json();
+    isoGeo = colorizeIso(iso); pointsGeo = pts;
+    isoLayer.clearLayers(); isoLayer.addData(isoGeo);
+    pointsLayer.clearLayers(); pointsLayer.addData(pointsGeo);
+    populatePointSelect();
+    fitToData();
+  }catch(err){
+    alert('Failed to fetch files: ' + err.message);
+  }
+}
+
+/* Populate dropdown */
+function populatePointSelect(){
+  while(pointSelect.options.length>1) pointSelect.remove(1);
+  if(!pointsGeo || !pointsGeo.features) return;
+  pointsGeo.features.forEach((f,i)=>{
+    const name = (f.properties && (f.properties.name || f.properties.title)) || `Point ${i+1}`;
+    const opt = document.createElement('option'); opt.value = i; opt.textContent = name; pointSelect.appendChild(opt);
+  });
+}
+
+/* Fit map */
+function fitToData(){
+  try{
+    if(isoGeo && isoGeo.features && isoGeo.features.length){
+      const bbox = turf.bbox(isoGeo); map.fitBounds([[bbox[1],bbox[0]],[bbox[3],bbox[2]]], { padding:[20,20] }); return;
+    }
+    if(pointsGeo && pointsGeo.features && pointsGeo.features.length){
+      const bbox = turf.bbox(pointsGeo); map.fitBounds([[bbox[1],bbox[0]],[bbox[3],bbox[2]]], { padding:[20,20] });
+    }
+  }catch(e){}
+}
+
+/* Show travel time for selected point */
+showBtn.addEventListener('click', ()=>{
+  const idx = pointSelect.value;
+  if(idx === '') { alert('Select a point'); return; }
+  if(!pointsGeo || !isoGeo) { alert('Data not loaded'); return; }
+  const ptFeat = pointsGeo.features[Number(idx)];
+  const pt = turf.point(ptFeat.geometry.coordinates);
+  let found = null;
+  for(const poly of isoGeo.features){
+    if(turf.booleanPointInPolygon(pt, poly)){ found = poly; break; }
+  }
+  const latlng = [ptFeat.geometry.coordinates[1], ptFeat.geometry.coordinates[0]];
+  let html = '';
+  if(found){ const t = getTimeFromFeature(found); html = `<strong>${(ptFeat.properties && (ptFeat.properties.name||ptFeat.properties.title))||'Point'}</strong><br/>Travel time: ${t? t.display : 'unknown'}`; }
+  else { html = `<strong>${(ptFeat.properties && (ptFeat.properties.name||ptFeat.properties.title))||'Point'}</strong><br/>Not inside any contour.`; }
+  L.popup().setLatLng(latlng).setContent(html).openOn(map);
+  map.flyTo(latlng, Math.max(map.getZoom(), 13));
+});
+
+/* Download colored isochrones */
+downloadBtn.addEventListener('click', ()=>{
+  if(!isoGeo){ alert('No isochrones loaded'); return; }
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(isoGeo));
+  const a = document.createElement('a'); a.href = dataStr; a.download = 'isochrones_colored.geojson'; document.body.appendChild(a); a.click(); a.remove();
+});
+
+/* Switch data mode */
+dataMode.addEventListener('change', ()=>{
+  if(dataMode.value === 'embedded') loadEmbedded(); else fetchFiles();
+});
+
+/* Initialize with embedded data */
+loadEmbedded();
+
+</script>
+</body>
+</html>

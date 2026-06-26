@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Concepts — Classification & MCA</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- header: paste the new header block here (see step 1) -->
+    <header class="header">
+  <div class="container nav">
+    <div class="brand">
+      <a href="index.html" class="brand-link" aria-label="Home">
+        <img src="shiga.jpg" alt="Shiga lake" class="brand-img">
+        <h1 class="brand-title">Sina Schlunze</h1>
+      </a>
+    </div>
+
+    <nav class="menu" role="navigation" aria-label="Main navigation">
+      <button id="mobile-toggle" class="mobile-toggle" aria-expanded="false" aria-controls="main-menu">☰</button>
+
+      <ul id="main-menu" class="menu-list">
+        <li><a href="index.html">Home</a></li>
+        <li class="has-sub"><a href="concepts.html">Concepts ▾</a>
+          <ul class="sub-menu">
+            <li><a href="concepts.html#classification">Classification</a></li>
+            <li><a href="concepts.html#mca">MCA</a></li>
+          </ul>
+        </li>
+        <li><a href="choropleth.html">Choropleth</a></li>
+        <li><a href="vector.html">Vector</a></li>
+        <li><a href="dtm-dsm.html">DTM/DSM</a></li>
+        <li><a href="vegetation.html">Vegetation</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Mobile menu toggle (paste at end of body or in a shared JS file)
+  (function(){
+    const btn = document.getElementById('mobile-toggle');
+    const menu = document.getElementById('main-menu');
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      menu.classList.toggle('open');
+    });
+  })();
+</script>
+  <!-- For brevity: assume header is included above -->
+
+  <main class="container" style="padding-top:28px">
+    <h2>Concepts</h2>
+
+    <div class="tabs" role="tablist" aria-label="Concepts tabs">
+      <button class="tab active" data-target="classification" role="tab" aria-selected="true">Classification</button>
+      <button class="tab" data-target="mca" role="tab" aria-selected="false">MCA</button>
+    </div>
+
+    <section id="classification" class="tab-content active" role="tabpanel">
+      <h3>Classification</h3>
+      <p>What is supervised and unsupervised classification?</p>
+      <img src="Classification-sample.png" alt="Classification sample" style="width:100%;border-radius:8px;margin:12px 0">
+
+      <h4>Land Use Classification</h4>
+      <p>The satellites make images of the Earth's surface periodically. However, the pixel scale is large because otherwise the data would be too large. The data is to rough to use but too massive to label by hand. The value of automated land cover classification is that it allows for the classification of raw satellite images into meaningful categories quickly and consistently. For this assignment, I run different classification of the areal image of Utrecht. In this case, the approximate length and width of each pixel were 30m.</p>
+
+      <img src="masure.png" alt="measure image" style="width:100%;border-radius:8px;margin:12px 0">
+
+      <p>There are two types of land cover classification: supervised and unsupervised classification. In supervised classification, the analyst provides the algorithm with training samples. On the other hand, in unsupervised classification, the algorithm groups pixels into clusters without any prior labels. It identifies natural patterns in the data, and the analyst interprets the clusters afterward.</p>
+
+  
+      <p>Spectral Profile of chosen Areas in Utrecht</p>
+      <img src="SpectralProfile.png" alt="Spectral Profile">
+      <p>Screenshot of my Unsupervised Pixel Based Classification</p>
+      <img src="PixelBased.png" alt="Unsupervised Pixel Based Classification">
+      <p>Screenshot of my Unsupervised Object Based Classification</p>
+      <img src="ObjectBased.png" alt="Unsupervised Object Based Classification">
+      <p>Screenshot of my Supervised Pixel Based Classification</p>
+      <img src="Supervised.png" alt="Supervised Pixel Based Classification">
+
+   
+      <p>Lastly, I run an NDVI analysis. For this map, my target audience is Biologists. I chose this color because they are used to label healthy vegetation in red.</p>
+
+      <img src="NDVI-Utrecht.png" alt="NDVI Utrecht" style="width:100%;border-radius:8px;margin:12px 0">
+
+      <p>In conclusion, the strength of unsupervised classification is its speed and efficiency. In a scene, they are “unbiased” to human eyes. However, there are higher chance that classes may not match real‑world categories. On the other hand, supervised classification is highly accurate but requires human time and high-quality training data. It is more suited for targeted mapping.</p>
+
+      <img src="Esri-certificate.png" alt="Esri certificate" style="width:160px;border-radius:8px;margin-top:12px">
+    </section>
+
+    <section id="mca" class="tab-content" role="tabpanel" aria-hidden="true">
+      <h3>Multicriteria Analysis (MCA)</h3>
+
+      <p>What is MCA?</p>
+      <p>Multicriteria Analysis (MCA) is used when multiple factors need to be considered when deciding or investigating the outcome. In GIS, those factors can be elevation, slope, land cover, soil type, flood risk, population, etc. and they are shown in map layers. MCA can help in complicated decision-making, with interconnected and different types of influences, because it allows for evaluating the significance of each factor. Therefore, it is used to decide conservation sites, to plan agricultural land use, to point out the most vulnerable to natural hazards, and many more.</p>
+
+      <img src="MCA-flow.png" alt="MCA flow" style="width:100%;border-radius:8px;margin:12px 0">
+
+      <p>Weighted Overlay illustration</p>
+      <p>This illustration shows how different factors with different levels of influence are shown in layers (InRas1 and InRas2) and calculated to grade the overall score (OutRas)</p>
+
+      <h4>Example of MCA workflow</h4>
+      <p>The problem</p>
+      <p>What tidal flats should be protected to conserve sea birds?</p>
+
+      <p>The criteria</p>
+      <ul>
+        <li>What factors should be considered?</li>
+        <li>What kind of birds are living/visiting the flats? How many?</li>
+        <li>Natural/artificial geography</li>
+        <li>Buildings and population around</li>
+        <li>Biodiversity level (also other animals, fish, and insects)</li>
+        <li>Ocean flow</li>
+        <li>Geographical rareness</li>
+        <li>Climate change vulnerability (connected to elevation)</li>
+        <li>Land cover</li>
+        <li>Accessibility</li>
+      </ul>
+
+      <p>Which criteria increase or decrease suitability?</p>
+      <ul>
+        <li>Species’ richness (high)</li>
+        <li>Food (the more the better)</li>
+        <li>Water quality (better)</li>
+        <li>Management cost (lower)</li>
+      </ul>
+
+      <p>The data</p>
+      <p>What GIS layers would you need?</p>
+      <ul>
+        <li>Simple map</li>
+        <li>Land classification layer</li>
+        <li>Bird population</li>
+        <li>Human population</li>
+      </ul>
+
+      <img src="MCA-flow.jpg" alt="MCA flow (repeat)" style="width:100%;border-radius:8px;margin:12px 0">
+    </section>
+  </main>
+
+  <footer class="footer">© 2026 Sina S.</footer>
+
+  <script>
+    // Tabs behavior
+    (function(){
+      const tabs = document.querySelectorAll('.tab');
+      const contents = document.querySelectorAll('.tab-content');
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // deactivate all
+          tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+          contents.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-hidden','true'); });
+          // activate chosen
+          btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+          const target = document.getElementById(btn.dataset.target);
+          if(target){ target.classList.add('active'); target.setAttribute('aria-hidden','false'); }
+          // update URL hash without scrolling
+          history.replaceState(null, '', '#' + btn.dataset.target);
+        });
+      });
+
+      // If URL has hash, open that tab on load
+      const hash = location.hash.replace('#','');
+      if(hash){
+        const targetBtn = Array.from(tabs).find(t => t.dataset.target === hash);
+        if(targetBtn) targetBtn.click();
+      }
+    })();
+  </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,21 @@
+{
+"type": "FeatureCollection",
+"name": "CastlePoints",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{"type":"Feature","properties":{"full_id":"w52543782","osm_id":"52543782"},"geometry":{"type":"Point","coordinates":[5.170342197323185,51.99874825]}},
+{"type":"Feature","properties":{"full_id":"w55193416","osm_id":"55193416"},"geometry":{"type":"Point","coordinates":[5.01485123372771,52.1605125]}},
+{"type":"Feature","properties":{"full_id":"w55277368","osm_id":"55277368"},"geometry":{"type":"Point","coordinates":[5.073028507913667,52.1271266]}},
+{"type":"Feature","properties":{"full_id":"w57915129","osm_id":"57915129"},"geometry":{"type":"Point","coordinates":[5.230035491089159,52.0867073]}},
+{"type":"Feature","properties":{"full_id":"w57928909","osm_id":"57928909"},"geometry":{"type":"Point","coordinates":[5.196766542137878,52.07221525]}},
+{"type":"Feature","properties":{"full_id":"w273748195","osm_id":"273748195"},"geometry":{"type":"Point","coordinates":[5.225948992673381,52.09215345]}},
+{"type":"Feature","properties":{"full_id":"w274026492","osm_id":"274026492"},"geometry":{"type":"Point","coordinates":[5.234202516927152,52.0789885]}},
+{"type":"Feature","properties":{"full_id":"w278141087","osm_id":"278141087"},"geometry":{"type":"Point","coordinates":[5.125149453005656,52.03300495]}},
+{"type":"Feature","properties":{"full_id":"w282958602","osm_id":"282958602"},"geometry":{"type":"Point","coordinates":[5.036408266193108,52.14017305]}},
+{"type":"Feature","properties":{"full_id":"w284882713","osm_id":"284882713"},"geometry":{"type":"Point","coordinates":[5.009358917780419,52.1639837]}},
+{"type":"Feature","properties":{"full_id":"w296606382","osm_id":"296606382"},"geometry":{"type":"Point","coordinates":[5.097377303265175,52.0371095]}},
+{"type":"Feature","properties":{"full_id":"w296646350","osm_id":"296646350"},"geometry":{"type":"Point","coordinates":[5.173639773646035,52.1019643]}},
+{"type":"Feature","properties":{"full_id":"w296698401","osm_id":"296698401"},"geometry":{"type":"Point","coordinates":[5.087276205386165,52.0221197]}},
+{"type":"Feature","properties":{"full_id":"w986490044","osm_id":"986490044"},"geometry":{"type":"Point","coordinates":[5.043828728135889,52.0195237]}}
+]
+}
